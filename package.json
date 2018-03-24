@@ -1,0 +1,52 @@
+{
+  "name": "@efk3/angular-busy",
+  "version": "1.0.0-rc.1",
+  "license": "MIT",
+  "author": "Krisztián Fekete <en@efk3.net>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Efk3/angular-busy.git"
+  },
+  "scripts": {
+    "build": "ng-packagr -p package.json",
+    "tsc": "tsc",
+    "prettify:ts": "prettier --parser typescript --write src/**/*.ts",
+    "precommit": "lint-staged"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.md": [
+      "prettier --parser markdown --write",
+      "git add"
+    ],
+    "*.ts": [
+      "prettier --parser typescript --write",
+      "git add"
+    ]
+  },
+  "peerDependencies": {
+    "@angular/core": "^5.0.0",
+    "rxjs": "^5.5.0"
+  },
+  "devDependencies": {
+    "@angular/cli": "~1.7.2",
+    "@angular/compiler": "^5.2.9",
+    "@angular/compiler-cli": "^5.2.0",
+    "@angular/core": "^5.2.0",
+    "@types/node": "~6.0.60",
+    "husky": "^0.14.3",
+    "lint-staged": "^7.0.0",
+    "ng-packagr": "^2.2.0",
+    "prettier": "^1.11.1",
+    "rxjs": "^5.5.6",
+    "tslint": "~5.9.1",
+    "tslint-angular": "^1.1.1",
+    "typescript": "~2.6.0",
+    "zone.js": "^0.8.4"
+  },
+  "dependencies": {}
+}

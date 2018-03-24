@@ -1,0 +1,75 @@
+{
+  "extends": [
+    "tslint-angular"
+  ],
+  "rules": {
+    "max-line-length": [true, 140],
+    "max-classes-per-file": [false],
+    "member-access": true,
+    "member-ordering": [
+      true,
+      {
+        "order": [
+          "static-field",
+          "instance-field",
+          "static-method",
+          "instance-method"
+        ]
+      }
+    ],
+    "no-console": [
+      true,
+      "log",
+      "debug",
+      "info",
+      "time",
+      "timeEnd",
+      "trace"
+    ],
+    "no-unused-expression": [
+      true,
+      "allow-fast-null-checks"
+    ],
+    "no-inferrable-types": false,
+    "no-string-literal": false,
+    "quotemark": [ true, "single" ],
+    "variable-name": [true, "ban-keywords", "check-format"],
+    "directive-selector": [
+      true,
+      "attribute",
+      "",
+      "camelCase"
+    ],
+    "component-selector": [
+      true,
+      "element",
+      "",
+      "kebab-case"
+    ],
+    "no-trailing-whitespace": false
+  },
+  "rxjs-no-add": {
+    "severity": "error"
+  },
+  "rxjs-no-operator": {
+    "severity": "error"
+  },
+  "rxjs-no-patched": {
+    "severity": "error"
+  },
+  "rxjs-no-wholesale": {
+    "severity": "error"
+  },
+  "use-input-property-decorator": true,
+  "use-output-property-decorator": true,
+  "use-host-property-decorator": true,
+  "no-attribute-parameter-decorator": true,
+  "no-input-rename": false,
+  "no-output-rename": false,
+  "no-forward-ref": false,
+  "use-life-cycle-interface": true,
+  "use-pipe-transform-interface": true,
+  "templates-use-public": true,
+  "no-access-missing-member": false,
+  "invoke-injectable": true
+}
