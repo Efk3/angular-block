@@ -142,4 +142,6 @@ application.
 
 ## Example
 
-You can see a full example on stackblitz.
+You can see a full example on [stackblitz][1].
+
+[1]: https://stackblitz.com/edit/efk3-angular-busy-example
