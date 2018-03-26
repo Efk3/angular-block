@@ -7,11 +7,11 @@ block by a simple call, promise and observable.
 
 ## Installation
 
-Install module:
+Install package:
 
 `npm install @efk3/angular-busy`
 
-Set up in your module:
+Set up in your NgModule:
 
 ```typescript
 import { NgModule } from '@angular/core';
@@ -33,11 +33,11 @@ export class YourModule {}
 
 The module is configurable by providers.
 
-The component provided in `BUSY_DEFAULT_GLOBAL_COMPONENT` will be used when the target is not
-specified for the block.
+The component provided in `BUSY_DEFAULT_GLOBAL_COMPONENT` will be used as default blocker component
+when the target is not specified.
 
-The component provided in `BUSY_DEFAULT_SPECIFIED_COMPONENT` will be used when the target is
-specified in the block call. If you do not provide this then the `BUSY_DEFAULT_GLOBAL_COMPONENT`
+The component provided in `BUSY_DEFAULT_SPECIFIED_COMPONENT` will be used as default blocker component
+when the target is specified. If you do not provide this then the `BUSY_DEFAULT_GLOBAL_COMPONENT`
 will be used.
 
 If there is no default component provided and the `busy` method called without `component` property
@@ -52,7 +52,7 @@ will store the number of blocks. The number of blocks is grouped by the target (
 specified then the `ApplicationRef` will be used). The appended component will be removed when the
 block count is zero.
 
-The `Target` type is an alias for `ApplicationRef`, `ViewContainerRef` and `ElementRef`.
+`ApplicationRef`, `ViewContainerRef` and `ElementRef` types are supported as target.
 
 ### Manual block example
 
@@ -131,7 +131,7 @@ The blocker component will receive these custom injection:
   the blocker count for the target.
 * `@Inject(BUSY_TARGET) public target: Target` - this is the target of the blocker component.
 
-### Get the blocker count
+### Observable blocker count
 
 The `BusyService` provides two functions to check how many blockers exist on a target or on the
 application.
