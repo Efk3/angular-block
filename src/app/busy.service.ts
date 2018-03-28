@@ -35,39 +35,30 @@ export class BusyService {
     }
   }
 
-  /**
-   * Block application or target(s)
-   */
-  public busy({ target = null, data = {}, component }: BlockInput = {}): void {
-    for (const singleTarget of this.normalizeTargets(target)) {
-      this.open(singleTarget, data, component);
+  public busy(config?: BlockInput): void;
+  public busy<T>(config: ObservableBlockInput<T>): Observable<T>;
+  public busy<T>(config: PromiseBlockInput<T>): Promise<T>;
+  public busy<T>(config: BlockInput | ObservableBlockInput<T> | PromiseBlockInput<T> = {}): void | Observable<T> | Promise<T> {
+    if (this.instanceOf<ObservableBlockInput<T>>(config, 'observable')) {
+      return config.observable.pipe(
+        doOnSubscribe(() => this.busy({ target: config.target, data: config.data, component: config.component })),
+        finalize(() => this.done())
+      );
+    }
+
+    if (this.instanceOf<PromiseBlockInput<T>>(config, 'promise')) {
+      this.busy({ target: config.target, data: config.data, component: config.component });
+
+      config.promise.then(() => this.done()).catch(() => this.done());
+
+      return config.promise;
+    }
+
+    for (const singleTarget of this.normalizeTargets(config.target)) {
+      this.open(singleTarget, config.data, config.component);
     }
   }
 
-  /**
-   * Block application or target(s) by observable
-   * The block effect will be triggered when the first subscription happens and will be completed when the observable completes or throws
-   * an error
-   */
-  public busyObservable<T>({ observable, target, data, component }: ObservableBlockInput<T>): Observable<T> {
-    return observable.pipe(doOnSubscribe(() => this.busy({ target, data, component })), finalize(() => this.done()));
-  }
-
-  /**
-   * Block application or target(s) by promise
-   * The block effect will be triggered instantly and will be completed when the promise returns or throws an error
-   */
-  public busyPromise<T>({ promise, target, data, component }: PromiseBlockInput<T>): Promise<T> {
-    this.busy({ target, data, component });
-
-    promise.then(() => this.done()).catch(() => this.done());
-
-    return promise;
-  }
-
-  /**
-   * Remove the block from application or target(s)
-   */
   public done(target: Target | Target[] = null): void {
     for (const singleTarget of this.normalizeTargets(target)) {
       if (!this.modifyBlockerCount(singleTarget, -1)) {
@@ -76,9 +67,6 @@ export class BusyService {
     }
   }
 
-  /**
-   * Get the count of blockers for the target as an observable
-   */
   public getBlockerCount(target: Target): Observable<number> {
     if (!target) {
       return null;
@@ -87,9 +75,6 @@ export class BusyService {
     return this.initOrGetBlock(target).count.asObservable();
   }
 
-  /**
-   * Get the count of blockers for the application as an observable
-   */
   public getGlobalBlockerCount(): Observable<number> {
     return this.getBlockerCount(this.applicationRef);
   }
@@ -144,9 +129,10 @@ export class BusyService {
     }
   }
 
-  /**
-   * Util functions
-   */
+  private instanceOf<T>(object: any, propertyName: keyof T): object is T {
+    return object && propertyName in object;
+  }
+
   private initOrGetBlock(target: Target): Block {
     if (!this.blocks.has(target)) {
       this.blocks.set(target, { component: null, count: new BehaviorSubject<number>(0) });
