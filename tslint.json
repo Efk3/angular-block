@@ -3,7 +3,6 @@
     "tslint-angular"
   ],
   "rules": {
-    "max-line-length": [true, 140],
     "max-classes-per-file": [false],
     "member-access": true,
     "member-ordering": [
