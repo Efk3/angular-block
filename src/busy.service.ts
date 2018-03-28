@@ -3,18 +3,20 @@ import { DOCUMENT } from '@angular/common';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
 import { finalize } from 'rxjs/operators';
-import { Block } from './block.interface';
+import { Block } from './model/block.interface';
 import {
   BUSY_BLOCKER_COUNT,
-  BUSY_TARGET,
   BUSY_DATA,
   BUSY_DEFAULT_GLOBAL_COMPONENT,
   BUSY_DEFAULT_SPECIFIED_COMPONENT,
+  BUSY_TARGET,
 } from './busy.provider';
-import { doOnSubscribe } from './do-on-subscribe';
-import { PortalInjector } from './portal-injector';
-import { Target } from './target';
-import { ObservableBlockInput, PromiseBlockInput, BlockInput } from './input-types';
+import { doOnSubscribe } from './util/do-on-subscribe.util';
+import { PortalInjector } from './model/portal-injector.model';
+import { Target } from './model/target.type';
+import { BlockInput } from './model/block-input.interface';
+import { ObservableBlockInput } from './model/observable-block-input.interface';
+import { PromiseBlockInput } from './model/promise-block-input.interface';
 
 @Injectable()
 export class BusyService {
