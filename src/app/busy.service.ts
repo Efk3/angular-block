@@ -1,4 +1,5 @@
 import { ApplicationRef, ComponentFactoryResolver, EmbeddedViewRef, Inject, Injectable, Injector, Optional, Type } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
 import { finalize } from 'rxjs/operators';
@@ -23,6 +24,7 @@ export class BusyService {
     private componentFactoryResolver: ComponentFactoryResolver,
     private applicationRef: ApplicationRef,
     private defaultInjector: Injector,
+    @Inject(DOCUMENT) private document: any,
     @Optional()
     @Inject(BUSY_DEFAULT_GLOBAL_COMPONENT)
     private defaultGlobalComponent: Type<any>,
@@ -97,9 +99,9 @@ export class BusyService {
 
       this.applicationRef.attachView(componentRef.hostView);
 
-      if (target instanceof ApplicationRef) {
+      if (target instanceof ApplicationRef && this.document) {
         // ApplicationRef
-        document.body.appendChild(domElement);
+        this.document.body.appendChild(domElement);
       } else if (target['element']) {
         // ViewContainerRef
         target['element'].nativeElement.appendChild(domElement);

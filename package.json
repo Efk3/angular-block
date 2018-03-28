@@ -30,10 +30,12 @@
   },
   "peerDependencies": {
     "@angular/core": "^5.0.0",
+    "@angular/common": "^5.0.0",
     "rxjs": "^5.5.0"
   },
   "devDependencies": {
     "@angular/cli": "~1.7.2",
+    "@angular/common": "^5.2.9",
     "@angular/compiler": "^5.2.9",
     "@angular/compiler-cli": "^5.2.0",
     "@angular/core": "^5.2.0",
