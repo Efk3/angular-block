@@ -29,10 +29,10 @@ export class BusyService {
     @Inject(DOCUMENT) private document: any,
     @Optional()
     @Inject(BUSY_DEFAULT_GLOBAL_COMPONENT)
-    private defaultGlobalComponent: Type<any>,
+    private readonly defaultGlobalComponent: Type<any>,
     @Optional()
     @Inject(BUSY_DEFAULT_SPECIFIED_COMPONENT)
-    private defaultSpecifiedComponent: Type<any>
+    private readonly defaultSpecifiedComponent: Type<any>
   ) {
     if (!defaultSpecifiedComponent) {
       this.defaultSpecifiedComponent = this.defaultGlobalComponent;
@@ -46,14 +46,14 @@ export class BusyService {
     if (this.instanceOf<ObservableBlockInput<T>>(config, 'observable')) {
       return config.observable.pipe(
         doOnSubscribe(() => this.busy({ target: config.target, data: config.data, component: config.component })),
-        finalize(() => this.done())
+        finalize(() => this.asyncDone(config))
       );
     }
 
     if (this.instanceOf<PromiseBlockInput<T>>(config, 'promise')) {
       this.busy({ target: config.target, data: config.data, component: config.component });
 
-      config.promise.then(() => this.done()).catch(() => this.done());
+      config.promise.then(() => this.asyncDone(config)).catch(() => this.asyncDone(config));
 
       return config.promise;
     }
@@ -130,6 +130,14 @@ export class BusyService {
       this.blocks.delete(target);
     } else {
       this.blocks.get(target).component = null;
+    }
+  }
+
+  private asyncDone<T>(config: PromiseBlockInput<T> | ObservableBlockInput<T>) {
+    this.done(config.target);
+
+    if (config.callback) {
+      config.callback();
     }
   }
 
