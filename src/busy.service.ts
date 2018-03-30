@@ -12,12 +12,15 @@ import {
   BUSY_TARGET,
 } from './busy.provider';
 import { doOnSubscribe } from './util/do-on-subscribe.util';
-import { PortalInjector } from './model/portal-injector.model';
+import { BlockComponentInjector } from './model/portal-injector.model';
 import { Target } from './model/target.type';
 import { BlockInput } from './model/block-input.interface';
 import { ObservableBlockInput } from './model/observable-block-input.interface';
 import { PromiseBlockInput } from './model/promise-block-input.interface';
 
+/**
+ * This service can block specified target or the application by manual call, observable and promise.
+ */
 @Injectable()
 export class BusyService {
   private blocks = new WeakMap<Target, Block>();
@@ -39,8 +42,22 @@ export class BusyService {
     }
   }
 
+  /**
+   * Block manually
+   * @param config
+   */
   public busy(config?: BlockInput): void;
+  /**
+   * Block by an observable
+   * @param config
+   * @returns wrapped observable
+   */
   public busy<T>(config: ObservableBlockInput<T>): Observable<T>;
+  /**
+   * Block by a promise
+   * @param config
+   * @returns original promise
+   */
   public busy<T>(config: PromiseBlockInput<T>): Promise<T>;
   public busy<T>(config: BlockInput | ObservableBlockInput<T> | PromiseBlockInput<T> = {}): void | Observable<T> | Promise<T> {
     if (this.instanceOf<ObservableBlockInput<T>>(config, 'observable')) {
@@ -63,6 +80,10 @@ export class BusyService {
     }
   }
 
+  /**
+   * Remove one block from target(s)
+   * @param target target(s)
+   */
   public done(target: Target | Target[] = null): void {
     for (const singleTarget of this.normalizeTargets(target)) {
       if (!this.modifyBlockerCount(singleTarget, -1)) {
@@ -71,7 +92,12 @@ export class BusyService {
     }
   }
 
-  public getBlockerCount(target: Target): Observable<number> {
+  /**
+   * Get blocker count for a target
+   * @param target
+   * @returns observable of blocker count
+   */
+  public getBlockerCount(target?: Target): Observable<number> {
     if (!target) {
       return this.getBlockerCount(this.applicationRef);
     }
@@ -94,7 +120,7 @@ export class BusyService {
 
     if (!this.blocks.get(target).component) {
       const componentFactory = this.componentFactoryResolver.resolveComponentFactory(component);
-      const componentRef = componentFactory.create(new PortalInjector(this.defaultInjector, this.createInjectionMap(target, data)));
+      const componentRef = componentFactory.create(new BlockComponentInjector(this.defaultInjector, this.createInjectionMap(target, data)));
       const domElement = (componentRef.hostView as EmbeddedViewRef<any>).rootNodes[0] as HTMLElement;
 
       if (target instanceof ApplicationRef && this.document) {
