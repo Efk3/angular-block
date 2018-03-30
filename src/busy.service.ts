@@ -94,12 +94,12 @@ export class BusyService {
 
     const block = this.initOrGetBlock(target);
 
+    this.modifyBlockerCount(target, +1);
+
     if (!this.blocks.get(target).component) {
       const componentFactory = this.componentFactoryResolver.resolveComponentFactory(component);
       const componentRef = componentFactory.create(new PortalInjector(this.defaultInjector, this.createInjectionMap(target, data)));
       const domElement = (componentRef.hostView as EmbeddedViewRef<any>).rootNodes[0] as HTMLElement;
-
-      this.applicationRef.attachView(componentRef.hostView);
 
       if (target instanceof ApplicationRef && this.document) {
         // ApplicationRef
@@ -112,10 +112,11 @@ export class BusyService {
         target['nativeElement'].appendChild(domElement);
       }
 
+      this.applicationRef.attachView(componentRef.hostView);
+      componentRef.changeDetectorRef.detectChanges();
+
       block.component = componentRef;
     }
-
-    this.modifyBlockerCount(target, +1);
   }
 
   private close(target: Target): void {
