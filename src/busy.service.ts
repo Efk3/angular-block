@@ -73,14 +73,10 @@ export class BusyService {
 
   public getBlockerCount(target: Target): Observable<number> {
     if (!target) {
-      return null;
+      return this.getBlockerCount(this.applicationRef);
     }
 
     return this.initOrGetBlock(target).count.asObservable();
-  }
-
-  public getGlobalBlockerCount(): Observable<number> {
-    return this.getBlockerCount(this.applicationRef);
   }
 
   private open(target: Target, data: any, component: Type<any>): void {
