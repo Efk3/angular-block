@@ -11,7 +11,11 @@
     "build": "ng-packagr -p package.json",
     "tsc": "tsc",
     "prettify:ts": "prettier --parser typescript --write src/**/*.ts",
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:ci": "jest --maxWorkers=2",
+    "codecov": "codecov"
   },
   "husky": {
     "hooks": {
@@ -28,6 +32,24 @@
       "git add"
     ]
   },
+  "jest": {
+    "coveragePathIgnorePatterns": [
+      "node_modules",
+      "testing"
+    ],
+    "preset": "jest-preset-angular",
+    "roots": [
+      "./src/"
+    ],
+    "setupTestFrameworkScriptFile": "./test/setup-jest.ts",
+    "globals": {
+      "ts-jest": {
+        "tsConfigFile": "./tsconfig.spec.json"
+      }
+    },
+    "coverageDirectory": "./coverage/",
+    "collectCoverage": true
+  },
   "peerDependencies": {
     "@angular/core": "^5.0.0",
     "@angular/common": "^5.0.0",
@@ -39,8 +61,14 @@
     "@angular/compiler": "^5.2.9",
     "@angular/compiler-cli": "^5.2.0",
     "@angular/core": "^5.2.0",
+    "@angular/platform-browser": "^5.2.9",
+    "@angular/platform-browser-dynamic": "^5.2.9",
+    "@types/jest": "^22.2.2",
     "@types/node": "~6.0.60",
+    "codecov": "^3.0.0",
     "husky": "^0.14.3",
+    "jest": "^22.4.3",
+    "jest-preset-angular": "^5.2.1",
     "lint-staged": "^7.0.0",
     "ng-packagr": "^2.2.0",
     "prettier": "^1.11.1",
