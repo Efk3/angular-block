@@ -1,6 +1,8 @@
 # Angular Busy Service
 
 [![npm version](https://badge.fury.io/js/%40efk3%2Fangular-busy.svg)](https://badge.fury.io/js/%40efk3%2Fangular-busy)
+[![Build Status](https://travis-ci.org/Efk3/angular-busy.svg?branch=master)](https://travis-ci.org/Efk3/angular-busy)
+[![codecov](https://codecov.io/gh/Efk3/angular-busy/branch/master/graph/badge.svg)](https://codecov.io/gh/Efk3/angular-busy)
 
 Simple and customizable busy service for Angular applications. It handles global and custom element
 block by a simple call, promise and observable.
