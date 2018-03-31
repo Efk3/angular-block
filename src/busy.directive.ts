@@ -42,6 +42,8 @@ export class BusyDirective {
         })
         .subscribe(null, () => this.removeSubscription(subscription), () => this.removeSubscription(subscription));
       this.subscriptions.add(subscription);
+
+      return;
     }
 
     if ('then' in busy) {
@@ -49,13 +51,15 @@ export class BusyDirective {
         promise: <Promise<any>>busy,
         ...config,
       });
+
+      return;
     }
+
+    throw new Error('Only Observable and Promise are accepted as trigger!');
   }
 
   private removeSubscription(subscription: Subscription) {
-    if (subscription) {
-      subscription.unsubscribe();
-      this.subscriptions.delete(subscription);
-    }
+    subscription.unsubscribe();
+    this.subscriptions.delete(subscription);
   }
 }
