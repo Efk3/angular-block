@@ -1,4 +1,14 @@
-import { ApplicationRef, ComponentFactoryResolver, EmbeddedViewRef, Inject, Injectable, Injector, Optional, Type } from '@angular/core';
+import {
+  ApplicationRef,
+  ComponentFactoryResolver,
+  ComponentRef,
+  EmbeddedViewRef,
+  Inject,
+  Injectable,
+  Injector,
+  Optional,
+  Type,
+} from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Observable } from 'rxjs/Observable';
@@ -103,6 +113,23 @@ export class BusyService {
     }
 
     return this.initOrGetBlock(target).count.asObservable();
+  }
+
+  /**
+   * Get blocker component reference for a target
+   * @param target
+   * @returns blocker component reference
+   */
+  public getBlockerComponent(target?: Target): ComponentRef<any> {
+    if (!target) {
+      target = this.applicationRef;
+    }
+
+    if (!this.blocks.has(target)) {
+      return null;
+    }
+
+    return this.blocks.get(target).component;
   }
 
   private open(target: Target, data: any, component: Type<any>): void {
