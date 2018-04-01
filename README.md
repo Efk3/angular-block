@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.org/Efk3/angular-block.svg?branch=master)](https://travis-ci.org/Efk3/angular-block)
 [![codecov](https://codecov.io/gh/Efk3/angular-block/branch/master/graph/badge.svg)](https://codecov.io/gh/Efk3/angular-block)
 
-Simple and customizable block module for block/busy effects/loading indicators.
+Simple and customizable Angular block module for block/busy effects/loading indicators.
 
 ## Installation
 
