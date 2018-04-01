@@ -1,11 +1,12 @@
 {
-  "name": "@efk3/angular-busy",
+  "name": "@efk3/angular-block",
+  "description": "Angular block module for application and view blocks by manual call, observable and promise",
   "version": "1.0.0-rc.1",
   "license": "MIT",
   "author": "Krisztián Fekete <en@efk3.net>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Efk3/angular-busy.git"
+    "url": "https://github.com/Efk3/angular-block.git"
   },
   "scripts": {
     "build": "ng-packagr -p package.json",

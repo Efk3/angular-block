@@ -15,12 +15,12 @@ import { Observable } from 'rxjs/Observable';
 import { finalize } from 'rxjs/operators';
 import { Block } from './model/block.interface';
 import {
-  BUSY_BLOCKER_COUNT,
-  BUSY_DATA,
-  BUSY_DEFAULT_GLOBAL_COMPONENT,
-  BUSY_DEFAULT_SPECIFIED_COMPONENT,
-  BUSY_TARGET,
-} from './busy.provider';
+  BLOCK_BLOCKER_COUNT,
+  BLOCK_DATA,
+  BLOCK_DEFAULT_GLOBAL_COMPONENT,
+  BLOCK_DEFAULT_SPECIFIED_COMPONENT,
+  BLOCK_TARGET,
+} from './block.provider';
 import { doOnSubscribe } from './util/do-on-subscribe.util';
 import { BlockComponentInjector } from './model/portal-injector.model';
 import { Target } from './model/target.type';
@@ -32,7 +32,7 @@ import { PromiseBlockInput } from './model/promise-block-input.interface';
  * This service can block specified target or the application by manual call, observable and promise.
  */
 @Injectable()
-export class BusyService {
+export class BlockService {
   private blocks = new WeakMap<Target, Block>();
 
   constructor(
@@ -41,10 +41,10 @@ export class BusyService {
     private defaultInjector: Injector,
     @Inject(DOCUMENT) private document: any,
     @Optional()
-    @Inject(BUSY_DEFAULT_GLOBAL_COMPONENT)
+    @Inject(BLOCK_DEFAULT_GLOBAL_COMPONENT)
     private readonly defaultGlobalComponent: Type<any>,
     @Optional()
-    @Inject(BUSY_DEFAULT_SPECIFIED_COMPONENT)
+    @Inject(BLOCK_DEFAULT_SPECIFIED_COMPONENT)
     private readonly defaultSpecifiedComponent: Type<any>
   ) {
     if (!defaultSpecifiedComponent) {
@@ -56,29 +56,29 @@ export class BusyService {
    * Block manually
    * @param config
    */
-  public busy(config?: BlockInput): void;
+  public block(config?: BlockInput): void;
   /**
    * Block by an observable
    * @param config
    * @returns wrapped observable
    */
-  public busy<T>(config: ObservableBlockInput<T>): Observable<T>;
+  public block<T>(config: ObservableBlockInput<T>): Observable<T>;
   /**
    * Block by a promise
    * @param config
    * @returns original promise
    */
-  public busy<T>(config: PromiseBlockInput<T>): Promise<T>;
-  public busy<T>(config: BlockInput | ObservableBlockInput<T> | PromiseBlockInput<T> = {}): void | Observable<T> | Promise<T> {
+  public block<T>(config: PromiseBlockInput<T>): Promise<T>;
+  public block<T>(config: BlockInput | ObservableBlockInput<T> | PromiseBlockInput<T> = {}): void | Observable<T> | Promise<T> {
     if (this.instanceOf<ObservableBlockInput<T>>(config, 'observable')) {
       return config.observable.pipe(
-        doOnSubscribe(() => this.busy({ target: config.target, data: config.data, component: config.component })),
+        doOnSubscribe(() => this.block({ target: config.target, data: config.data, component: config.component })),
         finalize(() => this.asyncDone(config))
       );
     }
 
     if (this.instanceOf<PromiseBlockInput<T>>(config, 'promise')) {
-      this.busy({ target: config.target, data: config.data, component: config.component });
+      this.block({ target: config.target, data: config.data, component: config.component });
 
       config.promise.then(() => this.asyncDone(config)).catch(() => this.asyncDone(config));
 
@@ -94,7 +94,7 @@ export class BusyService {
    * Remove one block from target(s)
    * @param target target(s)
    */
-  public done(target: Target | Target[] = null): void {
+  public unblock(target: Target | Target[] = null): void {
     for (const singleTarget of this.normalizeTargets(target)) {
       if (!this.modifyBlockerCount(singleTarget, -1)) {
         this.close(singleTarget);
@@ -138,7 +138,7 @@ export class BusyService {
     }
 
     if (!component) {
-      throw Error('Component is not defined for BusyModule!');
+      throw Error('Component is not defined for BlockModule!');
     }
 
     const block = this.initOrGetBlock(target);
@@ -184,7 +184,7 @@ export class BusyService {
   }
 
   private asyncDone<T>(config: PromiseBlockInput<T> | ObservableBlockInput<T>) {
-    this.done(config.target);
+    this.unblock(config.target);
 
     if (config.callback) {
       config.callback();
@@ -227,9 +227,9 @@ export class BusyService {
 
   private createInjectionMap(target: Target, data: any = {}): WeakMap<any, any> {
     const map = new WeakMap<any, any>();
-    map.set(BUSY_DATA, data);
-    map.set(BUSY_BLOCKER_COUNT, this.blocks.get(target).count.asObservable());
-    map.set(BUSY_TARGET, target);
+    map.set(BLOCK_DATA, data);
+    map.set(BLOCK_BLOCKER_COUNT, this.blocks.get(target).count.asObservable());
+    map.set(BLOCK_TARGET, target);
 
     return map;
   }

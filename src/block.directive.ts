@@ -1,43 +1,43 @@
 import { Directive, ElementRef, Input, Type } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
-import { BusyService } from './busy.service';
+import { BlockService } from './block.service';
 import { Subscription } from 'rxjs/Subscription';
 
 /**
  * Directive driven block
  *
- * Block will be triggered every time when the [k3Busy] input changes
+ * Block will be triggered every time when the [k3Block] input changes
  * Only promises and observables are accepted as input
  *
- * The blocker component can be specified by [k3BusyComponent] input
- * Data for blocker component can be specified by [k3BusyData] input
+ * The blocker component can be specified by [k3BlockerComponent] input
+ * Data for blocker component can be specified by [k3BlockData] input
  */
 @Directive({
-  selector: '[k3Busy]',
+  selector: '[k3Block]',
 })
-export class BusyDirective {
-  @Input() public k3BusyComponent: Type<any>;
-  @Input() public k3BusyData: any;
+export class BlockDirective {
+  @Input() public k3BlockerComponent: Type<any>;
+  @Input() public k3BlockData: any;
   private subscriptions = new Set<Subscription>();
 
-  constructor(private busyService: BusyService, private elementRef: ElementRef) {}
+  constructor(private blockService: BlockService, private elementRef: ElementRef) {}
 
   @Input()
-  set k3Busy(busy: Promise<any> | Observable<any>) {
-    if (!busy) {
+  set k3Block(trigger: Promise<any> | Observable<any>) {
+    if (!trigger) {
       return;
     }
 
     const config = {
       target: this.elementRef,
-      component: this.k3BusyComponent,
-      data: this.k3BusyData,
+      component: this.k3BlockerComponent,
+      data: this.k3BlockData,
     };
 
-    if ('subscribe' in busy) {
-      const subscription = this.busyService
-        .busy({
-          observable: <Observable<any>>busy,
+    if ('subscribe' in trigger) {
+      const subscription = this.blockService
+        .block({
+          observable: <Observable<any>>trigger,
           ...config,
         })
         .subscribe(null, () => this.removeSubscription(subscription), () => this.removeSubscription(subscription));
@@ -46,9 +46,9 @@ export class BusyDirective {
       return;
     }
 
-    if ('then' in busy) {
-      this.busyService.busy({
-        promise: <Promise<any>>busy,
+    if ('then' in trigger) {
+      this.blockService.block({
+        promise: <Promise<any>>trigger,
         ...config,
       });
 
