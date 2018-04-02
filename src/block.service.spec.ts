@@ -1,4 +1,4 @@
-import { ApplicationRef, Component, ElementRef, Inject, NgModule, ViewChild, ViewContainerRef } from '@angular/core';
+import { ApplicationRef, Component, Inject, NgModule, ViewContainerRef } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import {
   BLOCK_BLOCKER_COUNT,
@@ -9,7 +9,6 @@ import {
 } from './block.provider';
 import { BlockModule } from './block.module';
 import { BlockService } from './block.service';
-import { DOCUMENT } from '@angular/common';
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 
@@ -149,6 +148,28 @@ describe(`BlockService`, () => {
       subject2.error(null);
     } catch (ignore) {}
 
+    expect(document.body.children.length).toBe(0);
+  });
+
+  it('should work with subscription trigger', () => {
+    const service: BlockService = TestBed.get(BlockService);
+
+    // complete
+    const subject = new Subject();
+    let subscription = subject.subscribe();
+    service.block({ subscription });
+    expect(document.body.children.length).toBe(1);
+    subject.next();
+    expect(document.body.children.length).toBe(1);
+    subject.complete();
+    expect(document.body.children.length).toBe(0);
+
+    // unsubscribe
+    const subject2 = new Subject();
+    subscription = subject2.subscribe();
+    service.block({ subscription });
+    expect(document.body.children.length).toBe(1);
+    subscription.unsubscribe();
     expect(document.body.children.length).toBe(0);
   });
 

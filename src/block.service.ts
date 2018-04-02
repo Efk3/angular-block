@@ -27,6 +27,7 @@ import { Target } from './model/target.type';
 import { BlockInput } from './model/block-input.interface';
 import { ObservableBlockInput } from './model/observable-block-input.interface';
 import { PromiseBlockInput } from './model/promise-block-input.interface';
+import { SubscriptionBlockInput } from './model/subscription-block-input.interface';
 
 /**
  * This service can block specified target or the application by manual call, observable and promise.
@@ -58,6 +59,11 @@ export class BlockService {
    */
   public block(config?: BlockInput): void;
   /**
+   * Block by a subscription
+   * @param config
+   */
+  public block(config: SubscriptionBlockInput): void;
+  /**
    * Block by an observable
    * @param config
    * @returns wrapped observable
@@ -69,7 +75,9 @@ export class BlockService {
    * @returns original promise
    */
   public block<T>(config: PromiseBlockInput<T>): Promise<T>;
-  public block<T>(config: BlockInput | ObservableBlockInput<T> | PromiseBlockInput<T> = {}): void | Observable<T> | Promise<T> {
+  public block<T>(
+    config: BlockInput | SubscriptionBlockInput | ObservableBlockInput<T> | PromiseBlockInput<T> = {}
+  ): void | Observable<T> | Promise<T> {
     if (this.instanceOf<ObservableBlockInput<T>>(config, 'observable')) {
       return config.observable.pipe(
         doOnSubscribe(() => this.block({ target: config.target, data: config.data, component: config.component })),
@@ -83,6 +91,14 @@ export class BlockService {
       config.promise.then(() => this.asyncDone(config)).catch(() => this.asyncDone(config));
 
       return config.promise;
+    }
+
+    if (this.instanceOf<SubscriptionBlockInput>(config, 'subscription')) {
+      this.block({ target: config.target, data: config.data, component: config.component });
+
+      config.subscription.add(() => this.asyncDone(config));
+
+      return;
     }
 
     for (const singleTarget of this.normalizeTargets(config.target)) {
@@ -183,7 +199,7 @@ export class BlockService {
     }
   }
 
-  private asyncDone<T>(config: PromiseBlockInput<T> | ObservableBlockInput<T>) {
+  private asyncDone<T>(config: SubscriptionBlockInput | PromiseBlockInput<T> | ObservableBlockInput<T>) {
     this.unblock(config.target);
 
     if (config.callback) {

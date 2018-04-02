@@ -42,7 +42,7 @@ If there is no default component provided and the `block` method called without 
 
 ## Usage
 
-You can block the application or an element manually, by promise and by observable.
+You can block the application or an element manually, by subscription, by promise and by observable.
 
 If the target is not specified then the `ApplicationRef` will be used as target and the blocker component will be appended to the `document.body`.
 
@@ -63,6 +63,24 @@ export class MyComponent implements OnInit {
     setTimeout(() => {
       this.blockService.unblock();
     }, 3000);
+  }
+}
+```
+
+### Block by a subscription example
+
+The block will be initialized instantly and will be removed when the unsubscription happens.
+
+```typescript
+import { BlockService } from block;
+
+@Component({...})
+export class MyComponent implements OnInit {
+  constructor(private blockService: BlockService, private http: HttpClient) {}
+
+  public ngOnInit(): void {
+    const subscription = this.http.get('...').subscribe();
+    this.blockService.block({ subscription });
   }
 }
 ```
@@ -119,9 +137,9 @@ You can set up the block by directive.
 </div>
 ```
 
-The trigger can be an observable or a promise. The blocker component can be specified with the `k3BlockerComponent` input. The data for blocker component can be specified with the `k3BlockData` input.
+The trigger can be a subscription, an observable or a promise. The blocker component can be specified with the `k3BlockerComponent` input. The data for blocker component can be specified with the `k3BlockData` input.
 
-**Important** to know that the block will be triggered every time when the `k3Block` input changes. If you want to replace e.g. an observable as a trigger then first you have to made the current observable complete or the block will not be removed.
+**Important** to know that the block will be triggered every time when the `k3Block` input changes. If you want to replace e.g. an observable as a trigger then first you have to make the current observable complete or the block will not be removed.
 
 ### Block input
 
@@ -130,8 +148,14 @@ The `block` method accepts the following properties in the input object:
 * `target` - The blocker component will be appended to the given target(s). Simple and multiple targets (as an array) are accepted. `ApplicationRef`, `ViewContainerRef` and `ElementRef` types are supported as target.
 * `data` - This object will be injected into the blocker component.
 * `component` - You can specify the blocker component. If you do not set this property then the globally configured components will be used.
-* `observable` - The observable trigger for the block (see the [Block by an observable example](#block-by-an-observable-example) section).
-* `promise` - The promise trigger for the block (see the [Block by a promise example](#block-by-a-promise-example) section).
+
+#### Triggers
+
+The input object can contain one of the following triggers:
+
+* `subscription` - subscription trigger for the block (see the [Block by a subscription example](#block-by-a-subscription-example) section).
+* `observable` - observable trigger for the block (see the [Block by an observable example](#block-by-an-observable-example) section).
+* `promise` - promise trigger for the block (see the [Block by a promise example](#block-by-a-promise-example) section).
 
 ### Blocker component
 

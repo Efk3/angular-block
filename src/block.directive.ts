@@ -23,7 +23,7 @@ export class BlockDirective {
   constructor(private blockService: BlockService, private elementRef: ElementRef) {}
 
   @Input()
-  set k3Block(trigger: Promise<any> | Observable<any>) {
+  set k3Block(trigger: Subscription | Promise<any> | Observable<any>) {
     if (!trigger) {
       return;
     }
@@ -34,28 +34,27 @@ export class BlockDirective {
       data: this.k3BlockData,
     };
 
-    if ('subscribe' in trigger) {
+    if (trigger instanceof Observable) {
       const subscription = this.blockService
         .block({
-          observable: <Observable<any>>trigger,
+          observable: trigger,
           ...config,
         })
         .subscribe(null, () => this.removeSubscription(subscription), () => this.removeSubscription(subscription));
       this.subscriptions.add(subscription);
-
-      return;
-    }
-
-    if ('then' in trigger) {
+    } else if (trigger instanceof Promise) {
       this.blockService.block({
-        promise: <Promise<any>>trigger,
+        promise: trigger,
         ...config,
       });
-
-      return;
+    } else if (trigger instanceof Subscription) {
+      this.blockService.block({
+        subscription: trigger,
+        ...config,
+      });
+    } else {
+      throw new Error('Only Observable and Promise are accepted as trigger!');
     }
-
-    throw new Error('Only Observable and Promise are accepted as trigger!');
   }
 
   private removeSubscription(subscription: Subscription) {

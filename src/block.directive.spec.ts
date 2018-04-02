@@ -73,6 +73,22 @@ describe(`BlockDirective`, () => {
     expect(spyDone.mock.calls.length).toBe(1);
   });
 
+  it('should accept subscription as input', async () => {
+    const spyBlock = jest.spyOn(BlockService.prototype, 'block');
+    const spyDone = jest.spyOn(BlockService.prototype, 'unblock');
+    const subject = new Subject();
+    const subscription = subject.subscribe();
+
+    directive.k3BlockerComponent = FakeComponent;
+    directive.k3Block = subscription;
+
+    expect(spyDone.mock.calls.length).toBe(0);
+    expect(spyBlock.mock.calls.length).toBe(2);
+
+    subscription.unsubscribe();
+    expect(spyDone.mock.calls.length).toBe(1);
+  });
+
   it('should accept null and undefined as input', async () => {
     expect(() => {
       directive.k3Block = null;
