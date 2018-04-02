@@ -104,6 +104,14 @@ describe(`BlockService`, () => {
     });
   });
 
+  it('should handle unblock when there is no active block', () => {
+    const service: BlockService = TestBed.get(BlockService);
+    service.unblock();
+
+    const fixture = TestBed.createComponent(FakeContainerComponent);
+    service.unblock(fixture.componentInstance.viewContainerRef);
+  });
+
   it('should remove the blocker component when the blocker count is zero', () => {
     const service: BlockService = TestBed.get(BlockService);
     service.block();
