@@ -72,7 +72,7 @@ export class MyComponent implements OnInit {
 The block will be initialized instantly and will be removed when the unsubscription happens.
 
 ```typescript
-import { BlockService } from block;
+import { BlockService } from '@efk3/angular-block';
 
 @Component({...})
 export class MyComponent implements OnInit {
@@ -90,14 +90,15 @@ export class MyComponent implements OnInit {
 The block will be initialized when the first subscription happens to the observable. The `block` method will wrap the original observable so you have to use the returned observable to make the service work. The block will be removed automatically when the observable completes or throws an error.
 
 ```typescript
-import { BlockService } from block;
+import { BlockService } from '@efk3/angular-block';
 
 @Component({...})
 export class MyComponent implements OnInit {
-  constructor(private blockService: BlockService, private http: HttpClient) {}
+  constructor(private blockService: BlockService) {}
 
   public ngOnInit(): void {
-    this.blockService.block({ observable: this.http.get('...') }).subscribe(() => {
+    const subject = new Subject();
+    this.blockService.block({ observable: subject.asObservable() }).subscribe(() => {
       // logic
     });
   }
