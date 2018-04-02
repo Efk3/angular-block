@@ -183,7 +183,7 @@ import { BLOCK_BLOCKER_COUNT } from '@efk3/angular-block';
 #### Get the target of block
 
 ```typescript
-import { BLOCK_TARGET } from '@efk3/angular-block';
+import { BLOCK_TARGET, Target } from '@efk3/angular-block';
 
 @Inject(BLOCK_TARGET) public target: Target
 ```
