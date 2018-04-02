@@ -38,15 +38,15 @@ The component provided in `BLOCK_DEFAULT_GLOBAL_COMPONENT` will be used as defau
 
 The component provided in `BLOCK_DEFAULT_SPECIFIED_COMPONENT` will be used as default blocker component when the target is specified. If you do not provide this then the `BLOCK_DEFAULT_GLOBAL_COMPONENT` will be used.
 
-If there is no default component provided and the `block` method called without `component` property then the service will throw error.
+If there is no default component provided and the `block` method called without `component` property then the service will throw an error.
 
 ## Usage
 
 You can block the application or an element manually, by subscription, by promise and by observable.
 
-If the target is not specified then the `ApplicationRef` will be used as target and the blocker component will be appended to the `document.body`.
+If the target is not specified then the `ApplicationRef` will be used as the target and the blocker component will be appended to the `document.body`.
 
-If you call `block` multiple times for same target then the component will be appended only once but the service will store the number of blocks. The number of blocks is grouped by the target. The appended component will be removed when the block count is zero.
+If you call `block` multiple times for the same target then the component will be appended only once but the service will store the number of blocks. The number of blocks is grouped by the target. The appended component will be removed when the block count is zero.
 
 ### Manual block example
 
@@ -130,7 +130,7 @@ export class MyComponent implements OnInit {
 
 ## Directive driven block
 
-You can set up the block by directive.
+You can set up the block by using the block directive.
 
 ```typescript
 <div [k3Block]="trigger" [k3BlockerComponent]="BlockerComponent" [k3BlockData]="blockData">
