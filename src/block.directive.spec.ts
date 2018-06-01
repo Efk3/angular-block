@@ -2,8 +2,7 @@ import { BlockDirective } from './block.directive';
 import { BlockService } from './block.service';
 import { ElementRef, Component, NgModule } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
+import { Observable, Subject } from 'rxjs';
 
 @Component({
   template: ``,

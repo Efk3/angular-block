@@ -1,5 +1,5 @@
+import { Subscription } from 'rxjs';
 import { BlockInput } from './block-input.interface';
-import { Subscription } from 'rxjs/Subscription';
 
 /**
  * Subscription trigger interface for block method

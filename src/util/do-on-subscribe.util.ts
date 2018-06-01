@@ -1,5 +1,4 @@
-import { Observable } from 'rxjs/Observable';
-import { defer } from 'rxjs/observable/defer';
+import { Observable, defer } from 'rxjs';
 
 /**
  * Observable operator for onSubscribe event support

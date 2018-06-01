@@ -1,5 +1,5 @@
 import { ComponentRef } from '@angular/core';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { BehaviorSubject } from 'rxjs';
 
 /**
  * Inner class for store number of blocks and blocker component

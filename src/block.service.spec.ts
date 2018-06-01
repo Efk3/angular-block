@@ -1,5 +1,6 @@
 import { ApplicationRef, Component, Inject, NgModule, ViewContainerRef } from '@angular/core';
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { Observable, Subject } from 'rxjs';
 import {
   BLOCK_BLOCKER_COUNT,
   BLOCK_DATA,
@@ -9,8 +10,6 @@ import {
 } from './block.provider';
 import { BlockModule } from './block.module';
 import { BlockService } from './block.service';
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
 
 describe(`BlockService`, () => {
   beforeEach(() => {

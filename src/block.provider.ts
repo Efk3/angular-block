@@ -1,5 +1,5 @@
 import { InjectionToken, Type } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { Target } from './model/target.type';
 
 /**

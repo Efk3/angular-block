@@ -1,7 +1,6 @@
 import { Directive, ElementRef, Input, Type } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
+import { Observable, Subscription } from 'rxjs';
 import { BlockService } from './block.service';
-import { Subscription } from 'rxjs/Subscription';
 
 /**
  * Directive driven block

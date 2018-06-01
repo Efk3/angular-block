@@ -10,8 +10,7 @@ import {
   Type,
 } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Observable } from 'rxjs/Observable';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { Block } from './model/block.interface';
 import {
