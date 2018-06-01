@@ -1,5 +1,5 @@
 import { ApplicationRef, Component, Inject, NgModule, ViewContainerRef } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import {
   BLOCK_BLOCKER_COUNT,
   BLOCK_DATA,
@@ -18,6 +18,7 @@ describe(`BlockService`, () => {
       providers: [{ provide: BLOCK_DEFAULT_GLOBAL_COMPONENT, useValue: FakeComponent }],
       imports: [FakeModule, BlockModule.forRoot()],
     });
+    document.body.innerHTML = '';
   });
 
   it('should use provided blocker components', () => {
@@ -112,74 +113,90 @@ describe(`BlockService`, () => {
     service.unblock(fixture.componentInstance.viewContainerRef);
   });
 
-  it('should remove the blocker component when the blocker count is zero', () => {
-    const service: BlockService = TestBed.get(BlockService);
-    service.block();
-    service.block();
-    expect(document.body.children.length).toBe(1);
-    service.unblock();
-    expect(document.body.children.length).toBe(1);
-    service.unblock();
-    expect(document.body.children.length).toBe(0);
+  it(
+    'should remove the blocker component when the blocker count is zero',
+    fakeAsync(() => {
+      const service: BlockService = TestBed.get(BlockService);
+      service.block();
+      tick(1);
+      service.block();
+      expect(document.body.children.length).toBe(1);
+      service.unblock();
+      expect(document.body.children.length).toBe(1);
+      service.unblock();
+      expect(document.body.children.length).toBe(0);
 
-    const fixture = TestBed.createComponent(FakeContainerComponent);
-    service.block({ target: fixture.componentInstance.viewContainerRef });
-    service.block({ target: fixture.componentInstance.viewContainerRef });
-    expect(fixture.debugElement.nativeElement.children.length).toBe(1);
-    service.unblock(fixture.componentInstance.viewContainerRef);
-    expect(fixture.debugElement.nativeElement.children.length).toBe(1);
-    service.unblock(fixture.componentInstance.viewContainerRef);
-    expect(fixture.debugElement.nativeElement.children.length).toBe(0);
-  });
+      const fixture = TestBed.createComponent(FakeContainerComponent);
+      service.block({ target: fixture.componentInstance.viewContainerRef });
+      tick(1);
+      service.block({ target: fixture.componentInstance.viewContainerRef });
+      expect(fixture.debugElement.nativeElement.children.length).toBe(1);
+      service.unblock(fixture.componentInstance.viewContainerRef);
+      expect(fixture.debugElement.nativeElement.children.length).toBe(1);
+      service.unblock(fixture.componentInstance.viewContainerRef);
+      expect(fixture.debugElement.nativeElement.children.length).toBe(0);
+    })
+  );
 
-  it('should add block on subscription and remove after observable is finalized', () => {
-    const subject = new Subject();
-    const service: BlockService = TestBed.get(BlockService);
+  it(
+    'should add block on subscription and remove after observable is finalized',
+    fakeAsync(() => {
+      const subject = new Subject();
+      const service: BlockService = TestBed.get(BlockService);
 
-    // complete
-    const observable = service.block({ observable: subject.asObservable() });
-    expect(document.body.children.length).toBe(0);
-    observable.subscribe();
-    expect(document.body.children.length).toBe(1);
-    subject.next();
-    expect(document.body.children.length).toBe(1);
-    subject.complete();
-    expect(document.body.children.length).toBe(0);
+      // complete
+      const observable = service.block({ observable: subject.asObservable() });
+      expect(document.body.children.length).toBe(0);
+      observable.subscribe();
+      tick();
+      expect(document.body.children.length).toBe(1);
+      subject.next();
+      expect(document.body.children.length).toBe(1);
+      subject.complete();
+      expect(document.body.children.length).toBe(0);
 
-    // error
-    const subject2 = new Subject();
-    const observable2 = service.block({ observable: subject2.asObservable() });
-    observable2.subscribe();
-    expect(document.body.children.length).toBe(1);
+      // error
+      const subject2 = new Subject();
+      const observable2 = service.block({ observable: subject2.asObservable() });
+      const s = observable2.subscribe();
+      tick();
+      expect(document.body.children.length).toBe(1);
 
-    try {
-      subject2.error(null);
-    } catch (ignore) {}
+      try {
+        subject2.error(null);
+      } catch (ignore) {}
 
-    expect(document.body.children.length).toBe(0);
-  });
+      expect(document.body.children.length).toBe(0);
+      tick();
+    })
+  );
 
-  it('should work with subscription trigger', () => {
-    const service: BlockService = TestBed.get(BlockService);
+  it(
+    'should work with subscription trigger',
+    fakeAsync(() => {
+      const service: BlockService = TestBed.get(BlockService);
 
-    // complete
-    const subject = new Subject();
-    let subscription = subject.subscribe();
-    service.block({ subscription });
-    expect(document.body.children.length).toBe(1);
-    subject.next();
-    expect(document.body.children.length).toBe(1);
-    subject.complete();
-    expect(document.body.children.length).toBe(0);
+      // complete
+      const subject = new Subject();
+      let subscription = subject.subscribe();
+      service.block({ subscription });
+      tick();
+      expect(document.body.children.length).toBe(1);
+      subject.next();
+      expect(document.body.children.length).toBe(1);
+      subject.complete();
+      expect(document.body.children.length).toBe(0);
 
-    // unsubscribe
-    const subject2 = new Subject();
-    subscription = subject2.subscribe();
-    service.block({ subscription });
-    expect(document.body.children.length).toBe(1);
-    subscription.unsubscribe();
-    expect(document.body.children.length).toBe(0);
-  });
+      // unsubscribe
+      const subject2 = new Subject();
+      subscription = subject2.subscribe();
+      service.block({ subscription });
+      tick();
+      expect(document.body.children.length).toBe(1);
+      subscription.unsubscribe();
+      expect(document.body.children.length).toBe(0);
+    })
+  );
 
   it('should work with promise and remove block after promise resolves', async () => {
     const service: BlockService = TestBed.get(BlockService);

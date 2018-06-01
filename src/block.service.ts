@@ -30,7 +30,7 @@ import { PromiseBlockInput } from './model/promise-block-input.interface';
 import { SubscriptionBlockInput } from './model/subscription-block-input.interface';
 
 /**
- * This service can block specified target or the application by manual call, observable and promise.
+ * This service can block specified target or the application by manual call, subscription, observable and promise.
  */
 @Injectable()
 export class BlockService {
@@ -177,8 +177,10 @@ export class BlockService {
         target['nativeElement'].appendChild(domElement);
       }
 
-      this.applicationRef.attachView(componentRef.hostView);
-      componentRef.changeDetectorRef.detectChanges();
+      // have to make it async to do not break change detection cycle
+      setTimeout(() => {
+        this.applicationRef.attachView(componentRef.hostView);
+      }, 0);
 
       block.component = componentRef;
     }
@@ -244,7 +246,7 @@ export class BlockService {
   private createInjectionMap(target: Target, data: any = {}): WeakMap<any, any> {
     const map = new WeakMap<any, any>();
     map.set(BLOCK_DATA, data);
-    map.set(BLOCK_BLOCKER_COUNT, this.blocks.get(target).count.asObservable());
+    map.set(BLOCK_BLOCKER_COUNT, this.getBlockerCount(target));
     map.set(BLOCK_TARGET, target);
 
     return map;
