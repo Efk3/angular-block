@@ -1,7 +1,7 @@
 {
   "name": "@efk3/angular-block",
-  "description": "Angular block module for application and view blocks by manual call, observable and promise",
-  "version": "1.0.0-rc.1",
+  "description": "Angular block module for application and view blocks by manual call, subscription, observable and promise",
+  "version": "1.0.1",
   "license": "MIT",
   "author": "Krisztián Fekete <en@efk3.net>",
   "repository": {
