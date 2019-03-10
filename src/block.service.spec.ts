@@ -119,20 +119,26 @@ describe(`BlockService`, () => {
       service.block();
       tick(1);
       service.block();
+      tick();
       expect(document.body.children.length).toBe(1);
       service.unblock();
+      tick();
       expect(document.body.children.length).toBe(1);
       service.unblock();
+      tick();
       expect(document.body.children.length).toBe(0);
 
       const fixture = TestBed.createComponent(FakeContainerComponent);
       service.block({ target: fixture.componentInstance.viewContainerRef });
       tick(1);
       service.block({ target: fixture.componentInstance.viewContainerRef });
+      tick();
       expect(fixture.debugElement.nativeElement.children.length).toBe(1);
       service.unblock(fixture.componentInstance.viewContainerRef);
+      tick();
       expect(fixture.debugElement.nativeElement.children.length).toBe(1);
       service.unblock(fixture.componentInstance.viewContainerRef);
+      tick();
       expect(fixture.debugElement.nativeElement.children.length).toBe(0);
     })
   );
@@ -145,13 +151,16 @@ describe(`BlockService`, () => {
 
       // complete
       const observable = service.block({ observable: subject.asObservable() });
+      tick();
       expect(document.body.children.length).toBe(0);
       observable.subscribe();
       tick();
       expect(document.body.children.length).toBe(1);
       subject.next();
+      tick();
       expect(document.body.children.length).toBe(1);
       subject.complete();
+      tick();
       expect(document.body.children.length).toBe(0);
 
       // error
@@ -165,6 +174,7 @@ describe(`BlockService`, () => {
         subject2.error(null);
       } catch (ignore) {}
 
+      tick();
       expect(document.body.children.length).toBe(0);
       tick();
     })
@@ -184,6 +194,7 @@ describe(`BlockService`, () => {
       subject.next();
       expect(document.body.children.length).toBe(1);
       subject.complete();
+      tick();
       expect(document.body.children.length).toBe(0);
 
       // unsubscribe
@@ -193,36 +204,44 @@ describe(`BlockService`, () => {
       tick();
       expect(document.body.children.length).toBe(1);
       subscription.unsubscribe();
+      tick();
       expect(document.body.children.length).toBe(0);
     })
   );
 
-  it('should work with promise and remove block after promise resolves', async () => {
-    const service: BlockService = TestBed.get(BlockService);
+  it(
+    'should work with promise and remove block after promise resolves',
+    fakeAsync(() => {
+      const service: BlockService = TestBed.get(BlockService);
 
-    // resolve
-    const promise = new Promise(resolve => {
-      setTimeout(() => {
-        expect(document.body.children.length).toBe(1);
-        resolve();
-      }, 100);
-    });
+      // resolve
+      const promise = new Promise(resolve => {
+        setTimeout(() => {
+          expect(document.body.children.length).toBe(1);
+          resolve();
+        }, 1);
+      });
 
-    await service.block({ promise });
-    expect(document.body.children.length).toBe(0);
+      service.block({ promise });
+      tick(1);
+      expect(document.body.children.length).toBe(0);
 
-    // reject
-    const promise2 = new Promise((resolve, reject) => {
-      setTimeout(() => {
-        expect(document.body.children.length).toBe(1);
-        reject();
-      }, 100);
-    });
-    try {
-      await service.block({ promise: promise2 });
-    } catch (ignore) {}
-    expect(document.body.children.length).toBe(0);
-  });
+      // reject
+      const promise2 = new Promise((resolve, reject) => {
+        setTimeout(() => {
+          expect(document.body.children.length).toBe(1);
+          reject();
+        }, 1);
+      });
+
+      try {
+        service.block({ promise: promise2 });
+        tick(1);
+      } catch (ignore) {}
+
+      expect(document.body.children.length).toBe(0);
+    })
+  );
 
   it('should accept multiple target', async () => {
     const service: BlockService = TestBed.get(BlockService);

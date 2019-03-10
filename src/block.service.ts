@@ -179,7 +179,7 @@ export class BlockService {
       // have to make it async to do not break change detection cycle
       setTimeout(() => {
         this.applicationRef.attachView(componentRef.hostView);
-      }, 0);
+      });
 
       block.component = componentRef;
     }
@@ -190,7 +190,7 @@ export class BlockService {
       return;
     }
 
-    this.blocks.get(target).component.destroy();
+    const component = this.blocks.get(target).component;
 
     if (this.blocks.get(target).count.observers.length === 0) {
       this.blocks.get(target).count.complete();
@@ -198,6 +198,9 @@ export class BlockService {
     } else {
       this.blocks.get(target).component = null;
     }
+
+    // has to be run in the next change detection cycle
+    setTimeout(() => component.destroy());
   }
 
   private asyncDone<T>(config: SubscriptionBlockInput | PromiseBlockInput<T> | ObservableBlockInput<T>) {
