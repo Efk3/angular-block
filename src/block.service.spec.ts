@@ -181,6 +181,24 @@ describe(`BlockService`, () => {
   );
 
   it(
+    'should allow observable in trigger property',
+    fakeAsync(() => {
+      const subject = new Subject();
+      const service: BlockService = TestBed.get(BlockService);
+
+      // complete
+      const observable = service.block({ trigger: subject.asObservable() });
+      expect(document.body.children.length).toBe(0);
+      observable.subscribe();
+      tick();
+      expect(document.body.children.length).toBe(1);
+      subject.complete();
+      tick();
+      expect(document.body.children.length).toBe(0);
+    })
+  );
+
+  it(
     'should work with subscription trigger',
     fakeAsync(() => {
       const service: BlockService = TestBed.get(BlockService);
@@ -204,6 +222,22 @@ describe(`BlockService`, () => {
       tick();
       expect(document.body.children.length).toBe(1);
       subscription.unsubscribe();
+      tick();
+      expect(document.body.children.length).toBe(0);
+    })
+  );
+
+  it(
+    'should allow subscription in trigger property',
+    fakeAsync(() => {
+      const service: BlockService = TestBed.get(BlockService);
+
+      const subject = new Subject();
+      let subscription = subject.subscribe();
+      expect(service.block({ trigger: subscription }).closed).toBe(false);
+      tick();
+      expect(document.body.children.length).toBe(1);
+      subject.complete();
       tick();
       expect(document.body.children.length).toBe(0);
     })
@@ -239,6 +273,24 @@ describe(`BlockService`, () => {
         tick(1);
       } catch (ignore) {}
 
+      expect(document.body.children.length).toBe(0);
+    })
+  );
+
+  it(
+    'should allow promise in trigger property',
+    fakeAsync(() => {
+      const service: BlockService = TestBed.get(BlockService);
+
+      const promise = new Promise(resolve => {
+        setTimeout(() => {
+          expect(document.body.children.length).toBe(1);
+          resolve();
+        }, 1);
+      });
+
+      service.block({ trigger: promise }).then(() => {});
+      tick(1);
       expect(document.body.children.length).toBe(0);
     })
   );
@@ -287,7 +339,6 @@ describe(`BlockService`, () => {
   it('should be able to get blocker count', async () => {
     const service: BlockService = TestBed.get(BlockService);
     const container = TestBed.createComponent(FakeContainerComponent);
-    const containerWithoutBlock = TestBed.createComponent(FakeContainerComponent);
 
     service.block();
     service.block();

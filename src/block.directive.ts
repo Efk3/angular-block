@@ -1,6 +1,7 @@
 import { Directive, ElementRef, Input, Type } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
 import { BlockService } from './block.service';
+import { Trigger } from './model';
 
 /**
  * Directive driven block
@@ -22,7 +23,7 @@ export class BlockDirective {
   constructor(private blockService: BlockService, private elementRef: ElementRef) {}
 
   @Input()
-  set k3Block(trigger: Subscription | Promise<any> | Observable<any>) {
+  set k3Block(trigger: Trigger) {
     if (!trigger) {
       return;
     }
@@ -36,23 +37,18 @@ export class BlockDirective {
     if (trigger instanceof Observable) {
       const subscription = this.blockService
         .block({
-          observable: trigger,
+          trigger,
           ...config,
         })
         .subscribe(null, () => this.removeSubscription(subscription), () => this.removeSubscription(subscription));
       this.subscriptions.add(subscription);
-    } else if (trigger instanceof Promise) {
+    } else if (trigger instanceof Promise || trigger instanceof Subscription) {
       this.blockService.block({
-        promise: trigger,
-        ...config,
-      });
-    } else if (trigger instanceof Subscription) {
-      this.blockService.block({
-        subscription: trigger,
+        trigger,
         ...config,
       });
     } else {
-      throw new Error('Only Observable and Promise are accepted as trigger!');
+      throw new Error('Only observables, promises and subscriptions are accepted as trigger!');
     }
   }
 

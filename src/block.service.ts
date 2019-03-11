@@ -10,7 +10,7 @@ import {
   Type,
 } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, Subscription } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { Block } from './model/block.interface';
 import {
@@ -27,6 +27,8 @@ import { BlockInput } from './model/block-input.interface';
 import { ObservableBlockInput } from './model/observable-block-input.interface';
 import { PromiseBlockInput } from './model/promise-block-input.interface';
 import { SubscriptionBlockInput } from './model/subscription-block-input.interface';
+import { TriggerBlockInput } from './model/trigger-block-input.interface';
+import { Trigger } from './model';
 
 /**
  * This service can block specified target or the application by manual call, subscription, observable and promise.
@@ -56,7 +58,7 @@ export class BlockService {
    * Block manually
    * @param config
    */
-  public block(config?: BlockInput): void;
+  public block<T extends Trigger>(config?: BlockInput<T>): void;
   /**
    * Block by a subscription
    * @param config
@@ -74,30 +76,49 @@ export class BlockService {
    * @returns original promise
    */
   public block<T>(config: PromiseBlockInput<T>): Promise<T>;
-  public block<T>(
-    config: BlockInput | SubscriptionBlockInput | ObservableBlockInput<T> | PromiseBlockInput<T> = {}
-  ): void | Observable<T> | Promise<T> {
+  public block<T extends Trigger>(config: TriggerBlockInput<T>): T;
+  public block<T extends Trigger>(
+    config: BlockInput<T> | SubscriptionBlockInput | ObservableBlockInput<T> | PromiseBlockInput<T> | TriggerBlockInput<T> = {}
+  ): void | Observable<T> | Promise<T> | T {
+    // temporary alias until 2.0.0
     if (this.instanceOf<ObservableBlockInput<T>>(config, 'observable')) {
-      return config.observable.pipe(
-        doOnSubscribe(() => this.block({ target: config.target, data: config.data, component: config.component })),
-        finalize(() => this.asyncDone(config))
-      );
+      return this.block(this.createAliasConfig(config, 'observable'));
     }
 
     if (this.instanceOf<PromiseBlockInput<T>>(config, 'promise')) {
-      this.block({ target: config.target, data: config.data, component: config.component });
-
-      config.promise.then(() => this.asyncDone(config)).catch(() => this.asyncDone(config));
-
-      return config.promise;
+      return this.block(this.createAliasConfig(config, 'promise'));
     }
 
     if (this.instanceOf<SubscriptionBlockInput>(config, 'subscription')) {
-      this.block({ target: config.target, data: config.data, component: config.component });
+      return this.block(this.createAliasConfig(config, 'subscription'));
+    }
 
-      config.subscription.add(() => this.asyncDone(config));
+    if (this.instanceOf<TriggerBlockInput<T>>(config, 'trigger')) {
+      // promise
+      if (this.instanceOf<Promise<T>>(config.trigger, 'then')) {
+        this.block({ target: config.target, data: config.data, component: config.component });
 
-      return;
+        config.trigger.then(() => this.asyncDone(config)).catch(() => this.asyncDone(config));
+
+        return config.trigger;
+      }
+
+      // observable
+      if (this.instanceOf<Observable<T>>(config.trigger, 'subscribe')) {
+        return config.trigger.pipe(
+          doOnSubscribe(() => this.block({ target: config.target, data: config.data, component: config.component })),
+          finalize(() => this.asyncDone(config))
+        );
+      }
+
+      // subscription
+      if (this.instanceOf<Subscription>(config.trigger, 'unsubscribe')) {
+        this.block({ target: config.target, data: config.data, component: config.component });
+
+        config.trigger.add(() => this.asyncDone(config));
+
+        return config.trigger;
+      }
     }
 
     for (const singleTarget of this.normalizeTargets(config.target)) {
@@ -145,6 +166,17 @@ export class BlockService {
     }
 
     return this.blocks.get(target).component;
+  }
+
+  private createAliasConfig<T extends Trigger>(
+    config: SubscriptionBlockInput | ObservableBlockInput<T> | PromiseBlockInput<T>,
+    property: string
+  ) {
+    const triggerConfig: TriggerBlockInput<T> = { ...config };
+    triggerConfig.trigger = config[property];
+    delete triggerConfig[property];
+
+    return triggerConfig;
   }
 
   private open(target: Target, data: any, component: Type<any>): void {
@@ -203,7 +235,7 @@ export class BlockService {
     setTimeout(() => component.destroy());
   }
 
-  private asyncDone<T>(config: SubscriptionBlockInput | PromiseBlockInput<T> | ObservableBlockInput<T>) {
+  private asyncDone<T extends Trigger>(config: TriggerBlockInput<T>) {
     this.unblock(config.target);
 
     if (config.callback) {
