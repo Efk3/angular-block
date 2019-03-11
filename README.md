@@ -80,7 +80,7 @@ export class MyComponent implements OnInit {
 
   public ngOnInit(): void {
     const subscription = this.http.get('...').subscribe();
-    this.blockService.block({ subscription });
+    this.blockService.block({ trigger: subscription });
   }
 }
 ```
@@ -98,7 +98,7 @@ export class MyComponent implements OnInit {
 
   public ngOnInit(): void {
     const subject = new Subject();
-    this.blockService.block({ observable: subject.asObservable() }).subscribe(() => {
+    this.blockService.block({ trigger: subject.asObservable() }).subscribe(() => {
       // logic
     });
   }
@@ -121,7 +121,7 @@ export class MyComponent implements OnInit {
       // logic
     });
 
-    this.blockService.block({ promise });
+    this.blockService.block({ trigger: promise });
     promise.then(() => {
       // logic
     });
