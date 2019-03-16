@@ -10,7 +10,7 @@ import {
   Type,
 } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
-import { Observable, BehaviorSubject, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { Block } from './model/block.interface';
 import {
@@ -28,7 +28,8 @@ import { ObservableBlockInput } from './model/observable-block-input.interface';
 import { PromiseBlockInput } from './model/promise-block-input.interface';
 import { SubscriptionBlockInput } from './model/subscription-block-input.interface';
 import { TriggerBlockInput } from './model/trigger-block-input.interface';
-import { Trigger } from './model';
+import { Trigger } from './model/trigger.type';
+import { Unblock } from './model/unblock.interface';
 
 /**
  * This service can block specified target or the application by manual call, subscription, observable and promise.
@@ -111,11 +112,13 @@ export class BlockService {
 
     // handle triggers
     if (this.instanceOf<TriggerBlockInput<T>>(config, 'trigger')) {
+      const unblockConfig = this.createUnblockConfig(config);
+
       // promise
       if (this.instanceOf<Promise<T>>(config.trigger, 'then')) {
         this.block({ target: config.target, data: config.data, component: config.component });
 
-        config.trigger.then(() => this.asyncDone(config)).catch(() => this.asyncDone(config));
+        config.trigger.then(() => this.asyncDone(unblockConfig)).catch(() => this.asyncDone(unblockConfig));
 
         return config.trigger;
       }
@@ -124,7 +127,7 @@ export class BlockService {
       if (this.instanceOf<Observable<T>>(config.trigger, 'subscribe')) {
         return config.trigger.pipe(
           doOnSubscribe(() => this.block({ target: config.target, data: config.data, component: config.component })),
-          finalize(() => this.asyncDone(config))
+          finalize(() => this.asyncDone(unblockConfig))
         );
       }
 
@@ -132,7 +135,7 @@ export class BlockService {
       if (this.instanceOf<Subscription>(config.trigger, 'unsubscribe')) {
         this.block({ target: config.target, data: config.data, component: config.component });
 
-        config.trigger.add(() => this.asyncDone(config));
+        config.trigger.add(() => this.asyncDone(unblockConfig));
 
         return config.trigger;
       }
@@ -155,6 +158,17 @@ export class BlockService {
       if (!this.modifyBlockerCount(singleTarget, -1)) {
         this.close(singleTarget);
       }
+    }
+  }
+
+  /**
+   * Remove all block from target(s)
+   * @param target target(s)
+   */
+  public resetBlock(target: Target | Target[] = null): void {
+    for (const singleTarget of this.normalizeTargets(target)) {
+      this.modifyBlockerCount(singleTarget, this.blocks.get(singleTarget).count.getValue() * -1);
+      this.close(singleTarget);
     }
   }
 
@@ -248,6 +262,7 @@ export class BlockService {
       this.blocks.get(target).count.complete();
       this.blocks.delete(target);
     } else {
+      this.blocks.get(target).id = null;
       this.blocks.get(target).component = null;
     }
 
@@ -255,8 +270,11 @@ export class BlockService {
     setTimeout(() => component.destroy());
   }
 
-  private asyncDone<T extends Trigger>(config: TriggerBlockInput<T>) {
-    this.unblock(config.target);
+  private asyncDone(config: Unblock) {
+    // do not unblock if this block was for a previous block cycle
+    config.ids.filter(target => this.initOrGetBlock(target.target).id === target.id).forEach(target => {
+      this.unblock(target.target);
+    });
 
     if (config.callback) {
       config.callback();
@@ -267,12 +285,28 @@ export class BlockService {
     return object && propertyName in object;
   }
 
-  private initOrGetBlock(target: Target): Block {
-    if (!this.blocks.has(target)) {
-      this.blocks.set(target, { component: null, count: new BehaviorSubject<number>(0) });
+  private createUnblockConfig<T>(config: BlockInput<T>): Unblock {
+    const unblockConfig: Unblock = { callback: config.callback, ids: [] };
+
+    for (const singleTarget of this.normalizeTargets(config.target)) {
+      unblockConfig.ids.push({ target: singleTarget, id: this.initOrGetBlock(singleTarget).id });
     }
 
-    return this.blocks.get(target);
+    return unblockConfig;
+  }
+
+  private initOrGetBlock(target: Target): Block {
+    if (!this.blocks.has(target)) {
+      this.blocks.set(target, { id: null, component: null, count: new BehaviorSubject<number>(0) });
+    }
+
+    const block = this.blocks.get(target);
+
+    if (!block.id) {
+      block.id = Math.floor(Math.random() * 100000000);
+    }
+
+    return block;
   }
 
   private modifyBlockerCount(target: Target, count: number): number {

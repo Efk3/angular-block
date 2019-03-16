@@ -9,5 +9,4 @@ export interface SubscriptionBlockInput extends BlockInput<Subscription> {
    * @deprecated in 1.2.0 and will be removed in 2.0.0. Use 'trigger' instead.
    */
   subscription: Subscription;
-  callback?: () => void;
 }

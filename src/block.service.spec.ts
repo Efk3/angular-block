@@ -357,6 +357,54 @@ describe(`BlockService`, () => {
     expect(container2.debugElement.nativeElement.children.length).toBe(1);
   });
 
+  it(
+    'should be able to reset block',
+    fakeAsync(() => {
+      const service: BlockService = TestBed.get(BlockService);
+
+      service.block();
+      service.block();
+      service.block();
+      service.block();
+      tick();
+      expect(document.body.children.length).toBe(1);
+
+      service.resetBlock();
+      tick();
+      expect(document.body.children.length).toBe(0);
+      service.getBlockerCount().subscribe(value => expect(value).toBe(0));
+    })
+  );
+
+  it(
+    'should ignore old blocks after reset',
+    fakeAsync(() => {
+      const service: BlockService = TestBed.get(BlockService);
+      const subject = new Subject();
+
+      service.block();
+      service.block();
+      service.block();
+      service.block(subject.asObservable()).subscribe();
+      tick();
+      expect(document.body.children.length).toBe(1);
+
+      service.resetBlock();
+      tick();
+      expect(document.body.children.length).toBe(0);
+
+      service.block();
+      tick();
+      expect(document.body.children.length).toBe(1);
+      service.getBlockerCount().subscribe(value => expect(value).toBe(1));
+      tick();
+      subject.next();
+      subject.complete();
+      tick();
+      expect(document.body.children.length).toBe(1);
+    })
+  );
+
   it('should run callbacks when the block is removed', async () => {
     const service: BlockService = TestBed.get(BlockService);
     const subject = new Subject();

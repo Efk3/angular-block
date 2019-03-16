@@ -8,4 +8,5 @@ export interface BlockInput<T> {
   target?: Target | Target[];
   data?: any;
   component?: Type<any>;
+  callback?: () => void;
 }
