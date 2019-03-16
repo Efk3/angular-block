@@ -166,7 +166,7 @@ describe(`BlockService`, () => {
       // error
       const subject2 = new Subject();
       const observable2 = service.block({ observable: subject2.asObservable() });
-      const s = observable2.subscribe();
+      observable2.subscribe();
       tick();
       expect(document.body.children.length).toBe(1);
 
@@ -188,6 +188,23 @@ describe(`BlockService`, () => {
 
       // complete
       const observable = service.block({ trigger: subject.asObservable() });
+      expect(document.body.children.length).toBe(0);
+      observable.subscribe();
+      tick();
+      expect(document.body.children.length).toBe(1);
+      subject.complete();
+      tick();
+      expect(document.body.children.length).toBe(0);
+    })
+  );
+
+  it(
+    'should allow observable as input',
+    fakeAsync(() => {
+      const subject = new Subject();
+      const service: BlockService = TestBed.get(BlockService);
+
+      const observable = service.block(subject.asObservable());
       expect(document.body.children.length).toBe(0);
       observable.subscribe();
       tick();
@@ -244,6 +261,22 @@ describe(`BlockService`, () => {
   );
 
   it(
+    'should allow subscription as trigger',
+    fakeAsync(() => {
+      const service: BlockService = TestBed.get(BlockService);
+
+      const subject = new Subject();
+      let subscription = subject.subscribe();
+      expect(service.block(subscription).closed).toBe(false);
+      tick();
+      expect(document.body.children.length).toBe(1);
+      subject.complete();
+      tick();
+      expect(document.body.children.length).toBe(0);
+    })
+  );
+
+  it(
     'should work with promise and remove block after promise resolves',
     fakeAsync(() => {
       const service: BlockService = TestBed.get(BlockService);
@@ -290,6 +323,24 @@ describe(`BlockService`, () => {
       });
 
       service.block({ trigger: promise }).then(() => {});
+      tick(1);
+      expect(document.body.children.length).toBe(0);
+    })
+  );
+
+  it(
+    'should allow promise as trigger',
+    fakeAsync(() => {
+      const service: BlockService = TestBed.get(BlockService);
+
+      const promise = new Promise(resolve => {
+        setTimeout(() => {
+          expect(document.body.children.length).toBe(1);
+          resolve();
+        }, 1);
+      });
+
+      service.block(promise).then(() => {});
       tick(1);
       expect(document.body.children.length).toBe(0);
     })

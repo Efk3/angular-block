@@ -60,10 +60,17 @@ export class BlockService {
    */
   public block<T extends Trigger>(config?: BlockInput<T>): void;
   /**
+   * Block by a trigger
+   * @param trigger
+   * @returns trigger
+   */
+  public block<T extends Trigger>(trigger: T): T;
+  /**
    * Block by a subscription
    * @param config
+   * @returns original subscription
    */
-  public block(config: SubscriptionBlockInput): void;
+  public block(config: SubscriptionBlockInput): Subscription;
   /**
    * Block by an observable
    * @param config
@@ -78,8 +85,17 @@ export class BlockService {
   public block<T>(config: PromiseBlockInput<T>): Promise<T>;
   public block<T extends Trigger>(config: TriggerBlockInput<T>): T;
   public block<T extends Trigger>(
-    config: BlockInput<T> | SubscriptionBlockInput | ObservableBlockInput<T> | PromiseBlockInput<T> | TriggerBlockInput<T> = {}
-  ): void | Observable<T> | Promise<T> | T {
+    config: T | BlockInput<T> | SubscriptionBlockInput | ObservableBlockInput<T> | PromiseBlockInput<T> | TriggerBlockInput<T> = {}
+  ): void | Observable<T> | Promise<T> | Subscription | T {
+    // handle only trigger inputs
+    if (
+      this.instanceOf<Subscription>(config, 'add') ||
+      this.instanceOf<Promise<any>>(config, 'then') ||
+      this.instanceOf<Observable<any>>(config, 'subscribe')
+    ) {
+      return this.block({ trigger: config });
+    }
+
     // temporary alias until 2.0.0
     if (this.instanceOf<ObservableBlockInput<T>>(config, 'observable')) {
       return this.block(this.createAliasConfig(config, 'observable'));
@@ -93,6 +109,7 @@ export class BlockService {
       return this.block(this.createAliasConfig(config, 'subscription'));
     }
 
+    // handle triggers
     if (this.instanceOf<TriggerBlockInput<T>>(config, 'trigger')) {
       // promise
       if (this.instanceOf<Promise<T>>(config.trigger, 'then')) {
@@ -121,8 +138,11 @@ export class BlockService {
       }
     }
 
-    for (const singleTarget of this.normalizeTargets(config.target)) {
-      this.open(singleTarget, config.data, config.component);
+    // handle block
+    const blockInput = config as BlockInput<T>;
+
+    for (const singleTarget of this.normalizeTargets(blockInput.target)) {
+      this.open(singleTarget, blockInput.data, blockInput.component);
     }
   }
 
