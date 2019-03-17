@@ -80,7 +80,7 @@ export class MyComponent implements OnInit {
 
   public ngOnInit(): void {
     const subscription = this.http.get('...').subscribe();
-    this.blockService.block({ trigger: subscription });
+    this.blockService.block(subscription);
   }
 }
 ```
@@ -98,7 +98,7 @@ export class MyComponent implements OnInit {
 
   public ngOnInit(): void {
     const subject = new Subject();
-    this.blockService.block({ trigger: subject.asObservable() }).subscribe(() => {
+    this.blockService.block(subject.asObservable()).subscribe(() => {
       // logic
     });
   }
@@ -107,7 +107,8 @@ export class MyComponent implements OnInit {
 
 ### Block by a promise example
 
-The block will be initialized instantly and will be removed when the promise returns or throws an error.
+The block will be initialized instantly and will be removed when the promise returns or throws an error.  
+The `block` method returns the original promise so you can chain the call if you want.
 
 ```typescript
 import { BlockService } from '@efk3/angular-block';
@@ -121,7 +122,7 @@ export class MyComponent implements OnInit {
       // logic
     });
 
-    this.blockService.block({ trigger: promise });
+    this.blockService.block(promise);
     promise.then(() => {
       // logic
     });
@@ -129,7 +130,7 @@ export class MyComponent implements OnInit {
 }
 ```
 
-## Directive driven block
+### Directive driven block
 
 You can set up the block by using the block directive.
 
@@ -144,19 +145,18 @@ The trigger can be a subscription, an observable or a promise. The blocker compo
 
 ### Block input
 
-The `block` method accepts the following properties in the input object:
+The `block` method overloaded with multiple types for easier work.
 
+If you call it only with a trigger then it works like you don't specified anything but the `trigger` in the input and returns the given `trigger`.
+
+The other call version is for more specified configuration, in this version you can use the following properties:
+
+* `trigger` - You can use types described above as a trigger.
 * `target` - The blocker component will be appended to the given target(s). Simple and multiple targets (as an array) are accepted. `ApplicationRef`, `ViewContainerRef` and `ElementRef` types are supported as target.
 * `data` - This object will be injected into the blocker component.
 * `component` - You can specify the blocker component. If you do not set this property then the globally configured components will be used.
 
-#### Triggers
-
-The input object can contain one of the following triggers:
-
-* `subscription` - subscription trigger for the block (see the [Block by a subscription example](#block-by-a-subscription-example) section).
-* `observable` - observable trigger for the block (see the [Block by an observable example](#block-by-an-observable-example) section).
-* `promise` - promise trigger for the block (see the [Block by a promise example](#block-by-a-promise-example) section).
+In this method also the given trigger will be returned.
 
 ### Blocker component
 
@@ -203,6 +203,18 @@ You can get the blocker component for a target with this method:
 ```typescript
 getBlockerComponent(target?: Target): ComponentRef<any>
 ```
+
+### Clear blocks
+
+If you have to manage the blocks manually and you don't want to care about how much time you used the block then you can use the `clearBlock`
+method which removes every block from the given target(s).
+
+```typescript
+resetBlock(target?: Target): void
+```
+
+If you call this method then all of the blocks which are started by a trigger will be invalidated.
+Event if they expire they will not unblock the target(s) if you blocked them again in the meantime.
 
 ## Example
 

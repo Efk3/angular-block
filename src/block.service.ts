@@ -162,7 +162,7 @@ export class BlockService {
   }
 
   /**
-   * Remove all block from target(s)
+   * Remove all block from target(s) and invalidate ongoing blocks
    * @param target target(s)
    */
   public resetBlock(target: Target | Target[] = null): void {
